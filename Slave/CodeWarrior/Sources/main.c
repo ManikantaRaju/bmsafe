@@ -23,14 +23,14 @@ Global variables
 // Variables
 //-----------
 
-uint32  gElapsedTime = 0;	               // le temps en dixièmes de secondes ecoule depuis l'activation du timer PIT0				
-uint8   gSlaveID = 0;                    // le numéro d'identification du module, lu sur le port E.
+uint32  gElapsedTime = 0;	               // le temps en dixiÃ¨mes de secondes ecoule depuis l'activation du timer PIT0				
+uint8   gSlaveID = 0;                    // le numÃ©ro d'identification du module, lu sur le port E.
 uint16  gVoltages[NB_CELL];	             // table containing the Cell Voltages in mV
 int16   gTemp[NB_CELL];         	       // table contenant les temperatures des cellules (300 = 30.0 oC)
 int16   gTempRaw[NB_CELL];               // table contenant les lectures de l'ADC
 uint16  gBalThres = 0;          	       // Balancing target voltage
 uint16  gBalanceVector = 0;              // The n-th bit indicates the balancing status of the n-th cell. 1 = discharge enable.
-flags_t gFlags = { 0,0,0,0,0,0,0,0,0 };  // Les drapeaux globaux utilisés
+flags_t gFlags = { 0,0,0,0,0,0,0,0,0 };  // Les drapeaux globaux utilisÃ©s
 
 /*************************
  * Functions prototypes
@@ -68,30 +68,30 @@ void main(void) {
 
   MCU_init();
 
-  // Initialisation des tableaux de mesures
+  // Initialization of measurement charts
   for (i = 0; i < NB_CELL; i++) {
     gTemp[i] = 210;
     gVoltages[i] = 3700;
   }
 
-  // Lecture du slave ID sur le port E
-  gSlaveID = PORTE & 0x0F;  // Seuls les 4 bits les moins significatifs sont importants 
+  // Reading the slave ID of the port E
+  gSlaveID = PORTE & 0x0F;  // Only 4 least significant bits are important
   if (gSlaveID == 0 || (gSlaveID > 10)) {
-    gFlags.badSlaveId = 1;  // TODO: on ne fait rien avec ca...
+    gFlags.badSlaveId = 1;
   }
 
 
   #ifdef CAN_ENABLE
-  while (!CAN0CTL0_SYNCH);   //Attente de la synchro du bus CAN
-
-  // Envoyer un message au maître pour indiquer que notre initialisation est complétée
-  // Envoyer le numéro de révision également
+  while (!CAN0CTL0_SYNCH);    // Waiting for Sync CAN bus   
+  
+  // Send a message to the master indicating that our initialization is complete   
+  // Send the revision number also
   gFlags.canTxError = CAN0SendInitStatus(gSlaveID); 
   gFlags.canTxError = CAN0SendFirmwareRevision(gSlaveID);  
   #endif
 
   // Activation du timer
-  // Timer PIT0. Ce timer a une fréquence de 10 Hz.
+  // Timer PIT0. Ce timer a une frÃ©quence de 10 Hz.
   PITCE_PCE0 = 1;
   PITCFLMT_PITE = 1;
 
@@ -112,7 +112,7 @@ void main(void) {
 
       tempMeasureCount++;
 
-      // On ferme le ADC pour l'économie d'énergie
+      // On ferme le ADC pour l'Ã©conomie d'Ã©nergie
       ATD0CTL2_ADPU = 0;
       ATD1CTL2_ADPU = 0;
 
@@ -148,10 +148,10 @@ void main(void) {
       // Lecture de la configuration actuelle, sans erreur.
       while (ltcReadConfig(rcvConfig) != 0) {};
 
-      // Une condition vrai signifie que le registre de configuration du LTC6802
-      // a ete reinitialise par le watchdog timer. On n'utilise pas le bit WTD pour
-      // detecter une expiration du WTD (ne fonctionne pas). On utilise les bits CDC parce
-      // que la valeur utilisee (1) est differente de la valeur par defaut (0).
+// A true condition means that the LTC6802 configuration register      
+// Was reset, the watchdog timer . We do not use the bit for WTD       
+// Detect expiration of WTD ( does not) . CDC bits are used because       
+// The used value (1) is different from the default value (0) .
       if ((rcvConfig[0] & 0x01) == 0x00) {
         gFlags.spiTimeout = 0;          
         ltcWriteConfig(&ltcConfig);     
@@ -204,16 +204,16 @@ void main(void) {
 
     // On entre en mode veille, en attendant le prochain interrupt.
     // Ce sera un timer qui indique le moment de prendre des mesures ou la
-    // réception d'un message sur le port CAN.
+    // rÃ©ception d'un message sur le port CAN.
 
     // Le module SPI entrera lui aussi en mode veille puisque SPI1CR2_SPISWAI = 1
-    // On envoie l'ADC en stop mode quand il a terminé de prendre ses mesures.
-    // Le périphérique CAN n'entre pas en mode wait car dans ce cas on perd le msg
-    // qui a réveillé l'interface CAN.
+    // On envoie l'ADC en stop mode quand il a terminÃ© de prendre ses mesures.
+    // Le pÃ©riphÃ©rique CAN n'entre pas en mode wait car dans ce cas on perd le msg
+    // qui a rÃ©veillÃ© l'interface CAN.
 
-    // TODO: mettre le module CAN en wait mode et tjrs envoyer un msg bidon à partir du maître
+    // TODO: mettre le module CAN en wait mode et tjrs envoyer un msg bidon Ã  partir du maÃ®tre
     // quand il envoie une commande. Cependant, les mesg des autres esclaves vont constamment
-    // réveiller l'interface, sauf si on utilise le Twup...
+    // rÃ©veiller l'interface, sauf si on utilise le Twup...
 
     asm {
       WAI
